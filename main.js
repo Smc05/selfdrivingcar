@@ -2,7 +2,7 @@ let canvas = document.querySelector('canvas');
 let context = canvas.getContext('2d');
 
 canvas.width = 600
-canvas.height = 600
+canvas.height = 860
 
 function rand(min, max) {
    return Math.random() * (max - min) + min;
@@ -102,7 +102,7 @@ class RoadLines {
 
  }
    update() {
-      this.y += this.road.speed/50;
+      this.y += this.road.speed/30;
    }
 
    draw(ctx) {
@@ -119,21 +119,22 @@ class Road {
    constructor (width, height) {
       this.width = width
       this.height = height
-      this.maxspeed = 200
+      this.maxspeed = 180
+      this.senzor = this.maxspeed*2
       this.speed = this.maxspeed
       this.leftlines = []
       this.Rightlines = []
       this.mycar = new MyCar(this)
       
       
-      this.newcarcooldown = 0;
+      this.newcarcooldown = 20;
       this.cars = {};
       this.carlist = []
       this.carYpos = []
 
-      for (var i = 0; i < 10; i++) {
-         this.leftlines.push(new RoadLines(this, 60*i, (600/3) - 10))
-         this.Rightlines.push(new RoadLines(this, 60*i, (600/1.5) - 10))
+      for (var i = 0; i < 20; i++) {
+         this.leftlines.push(new RoadLines(this, 60*i, (this.width/3) - 10))
+         this.Rightlines.push(new RoadLines(this, 60*i, (this.width/1.5) - 10))
       }
 
       this.leftblock = false;
@@ -194,9 +195,19 @@ class Road {
       
 
       //érzékeli a körülötte lévő autók számát
-      let forwardcars = this.carlist.filter( car => car.x - 50 < this.mycar.x && car.x + 50 > this.mycar.x && this.mycar.y - this.height < car.y).length;
-      let leftcars = this.carlist.filter( car => this.mycar.x - 50 > car.x && this.mycar.y - this.height < car.y).length;
-      let rightcars = this.carlist.filter( car => this.mycar.x + 50 < car.x && this.mycar.y - this.height < car.y).length;
+
+      this.senzor = this.speed*2
+ 
+      //érzékeli a körülötte lévő autók számát
+      let forwardcars = this.carlist.filter( car => 
+         car.x - 50 < this.mycar.x && car.x + 50 > this.mycar.x && this.mycar.y - this.senzor - car.height < car.y && this.mycar.y + this.mycar.height + 1000/this.senzor*5 > car.y).length;
+
+      let leftcars = this.carlist.filter( car => 
+         this.mycar.x - 50 > car.x && this.mycar.x - 50 - this.width/3 < car.x && this.mycar.y - this.senzor - car.height < car.y && this.mycar.y + this.mycar.height + 1000/this.senzor*5 > car.y).length;
+
+      let rightcars = this.carlist.filter( car => 
+         this.mycar.x + 50 < car.x && this.mycar.x + 50 + this.width/1.5 > car.x && this.mycar.y - this.senzor - car.height < car.y && this.mycar.y + this.mycar.height + 1000/this.senzor*5 > car.y).length;
+
       console.log(leftcars, forwardcars, rightcars)
 
       //ellenörzi a pozíciót és hogy alkalmas e a kanyarodás és az alapján állitja a kocsi pozíció váltás értékét 
@@ -211,22 +222,20 @@ class Road {
             this.mycar.middle = true
          }
          //lassitás sebességtől függöen előre nézi és kalkulálja hogy mennyire lassitson le
-         if (this.mycar.y - this.carlist.filter(car => car.x - 50 < this.mycar.x && car.x + 50 > this.mycar.x && this.mycar.y - this.height < car.y)[0].y < this.speed*3
-         && this.speed > this.carlist.filter(car => car.x - 50 < this.mycar.x && car.x + 50 > this.mycar.x && this.mycar.y - this.height < car.y)[0].speed)
+         let nearestcar = this.carlist.filter(car => car.x - 50 < this.mycar.x && car.x + 50 > this.mycar.x && this.mycar.y - this.senzor - car.height < car.y)[0]
+         if (this.mycar.y - nearestcar.y < this.senzor*2
+         && this.speed > nearestcar.speed)
          {
             this.speed -= .5;
          }
-         if (this.mycar.y - this.carlist.filter(car => car.x - 50 < this.mycar.x && car.x + 50 > this.mycar.x && this.mycar.y - this.height < car.y)[0].y < this.speed*2
-         && this.speed > this.carlist.filter(car => car.x - 50 < this.mycar.x && car.x + 50 > this.mycar.x && this.mycar.y - this.height < car.y)[0].speed)
-         {
-            this.speed -= 10;
-         }
+
 
       }
       //ha nincsen elötte auto és nem max sebességgel megy akkor gyorsitson fel a megengedett sebességre
       if (forwardcars == 0 && this.speed < this.maxspeed) {
          this.speed += .5;
       }
+
 
       
 

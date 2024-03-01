@@ -180,7 +180,7 @@ class Road {
 
       this.newcarcooldown--
       if (this.newcarcooldown < 0) {
-         this.newcarcooldown = 200;
+         this.newcarcooldown = 100;
          //ha 10nél kevesebb auto van akkor adjon hozzá egyet 300frames idözitésenként
          if (this.carlist.length < 10) {
             this.carlist.push(new Car(this, this.cars[`car${Math.floor(rand(1, 7))}`]))
@@ -208,17 +208,17 @@ class Road {
       let rightcars = this.carlist.filter( car => 
          this.mycar.x + 50 < car.x && this.mycar.x + 50 + this.width/1.5 > car.x && this.mycar.y - this.senzor - car.height < car.y && this.mycar.y + this.mycar.height + 1000/this.senzor*5 > car.y).length;
 
-      console.log(leftcars, forwardcars, rightcars)
+      console.log(leftcars, forwardcars, rightcars, this.mycar.x - 50 - this.width/3, this.mycar.x - 50 + this.width/1.5)
 
       //ellenörzi a pozíciót és hogy alkalmas e a kanyarodás és az alapján állitja a kocsi pozíció váltás értékét 
       if (forwardcars > 0) {
-         if (leftcars == 0 && this.width/3 < this.mycar.x && this.width/1.5 > this.mycar.x) {
+         if (leftcars == 0 && this.width/3 < this.mycar.x && this.width/1.5 > this.mycar.x && !this.mycar.right) {
             this.mycar.left = true
          }
-         else if (rightcars == 0 && this.width/1.5 > this.mycar.x && this.width/3 < this.mycar.x) {
+         else if (rightcars == 0 && this.width/1.5 > this.mycar.x && this.width/3 < this.mycar.x && !this.mycar.left) {
             this.mycar.right = true
          }
-         else if (rightcars == 0 && leftcars == 0) {
+         else if (rightcars == 0 && leftcars == 0 && !this.mycar.right && !this.mycar.left) {
             this.mycar.middle = true
          }
          //lassitás sebességtől függöen előre nézi és kalkulálja hogy mennyire lassitson le
@@ -227,6 +227,11 @@ class Road {
          && this.speed > nearestcar.speed)
          {
             this.speed -= .5;
+         }
+         if (this.mycar.y - nearestcar.y < nearestcar.height*1.5
+         && this.speed > nearestcar.speed)
+         {
+            this.speed -= 2;
          }
 
 
